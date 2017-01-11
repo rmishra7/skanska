@@ -1,5 +1,5 @@
 
-from rest_framework import generics, response, status
+from rest_framework import generics, response, status, serializers
 import requests
 from django.db import connection
 
@@ -11,7 +11,13 @@ class ProjectApi(generics.GenericAPIView):
     queryset = ""
 
     def get(self, request, *args, **kwargs):
-        url = "http://api.zip-codes.com/ZipCodesAPI.svc/1.0/FindZipCodesInRadius?zipcode=20003&minimumradius=0&maximumradius=2&key=HH7CKSM3KF5K7FK8S8S2"
+        zipcode = self.request.query_params.get('zipcode', None)
+        range = self.request.query_params.get('range', None)
+        if zipcode is None or range is None:
+            raise serializers.ValidationError("missing query param zipcode or range.")
+        rating_system = self.request.query_params.get('rating_system', '')
+        project_type = self.request.query_params.get('project_type', '')
+        url = "http://api.zip-codes.com/ZipCodesAPI.svc/1.0/FindZipCodesInRadius?zipcode="+zipcode+"&minimumradius=0&maximumradius="+range+"&key=HH7CKSM3KF5K7FK8S8S2"
         proj = requests.get(url)
         zipcode = []
         if "DataList" in proj.json():
